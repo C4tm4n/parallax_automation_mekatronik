@@ -1,0 +1,36 @@
+
+#include <Arduino.h>
+int t;
+int tDelay = 100;
+bool on = false;
+void setup() {
+  pinMode(2,OUTPUT);
+  pinMode(3,OUTPUT);
+  // put your setup code here, to run once:
+  Serial.begin(9600);
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+  t = millis();
+  if(t<5000)
+  {
+    if(t%(2*tDelay) < tDelay)
+    {
+      digitalWrite(2,LOW);
+      digitalWrite(3,HIGH);
+    }
+    else
+    {
+      digitalWrite(2,HIGH);
+      digitalWrite(3,LOW);
+    }
+  }
+  else
+  {
+    digitalWrite(2,LOW);
+    digitalWrite(3,LOW);
+  }
+  
+
+}
