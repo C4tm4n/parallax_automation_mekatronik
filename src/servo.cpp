@@ -100,7 +100,7 @@ float calculateSpeedDelta(bool rightMotor){
         currentSpeed = currentSpeedLeft;
         targetSpeed = targetSpeedLeft;
     }
-    currentAcceleration = acceleration*(0.2 - currentSpeed);
+    currentAcceleration = acceleration*(maxSpeed - currentSpeed);
     float speedDelta = currentAcceleration * looptime;
 
     return speedDelta;
