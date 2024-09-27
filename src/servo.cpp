@@ -26,10 +26,10 @@ void setup(){
 
 void rightWheel(float speed){
 
-    ServoRight.writeMicroseconds(1498-592.32*speed);
+    ServoRight.writeMicroseconds(1500-592.32*speed);
 }
 void leftWheel(float speed){
-    ServoLeft.writeMicroseconds(1496.8+ 586.71*speed);
+    ServoLeft.writeMicroseconds(1500+ 586.71*speed);
 
 }
 
