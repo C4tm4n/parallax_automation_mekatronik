@@ -11,7 +11,7 @@ struct motor{
 struct motor left;
 struct motor right;
 
-double acceleration = 0.21; 
+double acceleration = 0.3; 
 double tMaxSpeed = 0.2;
 double pMaxSpeed = 0.15;
 
@@ -116,6 +116,7 @@ void updateSpeeds(){
         side.currentSpeed += speedDelta; 
         if(side.targetSpeed<side.currentSpeed){ // if the new speed goes above the target speed
             side.currentSpeed = left.targetSpeed; 
+            Serial.print("speed reached");
             }
         }
         else{
