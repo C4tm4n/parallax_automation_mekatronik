@@ -15,7 +15,7 @@ double acceleration = 0.3;
 double tMaxSpeed = 0.2;
 double pMaxSpeed = 0.15;
 
-double looptime = 0.001;
+double looptime = 0.0001;
 double time; 
 bool first = true;
 unsigned int ct;
@@ -32,9 +32,14 @@ void setup(){
     right.targetSpeed = 0;
 }
 
+void drive(float leftSpeed, float rightSpeed){
+    left.servo.writeMicroseconds(1496.8+ 586.71*leftSpeed);
+    right.servo.writeMicroseconds(1498-592.32*rightSpeed);
+
+}
+
 void rightWheel(float speed){
     float microSeconds = 1498-592.32*speed;
-    right.servo.writeMicroseconds(microSeconds);
 }
 void leftWheel(float speed){
     left.servo.writeMicroseconds(1496.8+ 586.71*speed);
@@ -129,6 +134,7 @@ void updateSpeeds(){
 
     rightWheel(right.currentSpeed);
     leftWheel(left.currentSpeed);
+    drive(left.currentSpeed, right.currentSpeed);
     if(ct%1000 == 0){
         Serial.print("left: ");
         Serial.println(left.currentSpeed);
