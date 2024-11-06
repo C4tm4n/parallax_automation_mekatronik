@@ -7,6 +7,8 @@ struct motor{
     Servo servo;
     double currentSpeed;
     double targetSpeed;
+    int sensorPin;
+    bool sensorTrigered;
 };
 struct motor left;
 struct motor right;
@@ -25,6 +27,15 @@ void setup(){
     Serial.begin(9600);
     left.servo.attach(10);
     right.servo.attach(11);
+
+    left.sensorPin = 5;
+    right.sensorPin = 7;
+
+    pinMode(left.sensorPin, INPUT);
+    pinMode(right.sensorPin, INPUT);
+
+
+
     
     left.currentSpeed = 0;
     left.targetSpeed = 0;
@@ -56,44 +67,16 @@ void loop()
     else{
         looptime = micros()/1000000.0 -time;
         time = micros()/1000000.0;
+    
     }
-    if(finished){
+    left.sensorTrigered = false; 
+    right.sensorTrigered = false;
 
-    }
-    else if(time< 4){
-        left.targetSpeed = 0.15;
-        right.targetSpeed = 0.15;
-        if(ct%1000 == 0){
-            Serial.println(time);}
-    }else if(time < 9){
-        if(ct%1000 == 0){
-            Serial.println(time);}
-        left.targetSpeed = 0.1;
-        right.targetSpeed = 0;
-    }else if(time < 12){
-        if(ct%1000 == 0){
-            Serial.println(time);}
-        left.targetSpeed = 0;
-        right.targetSpeed = 0.1;
-    }else if(time < 15){
-        left.targetSpeed = 0.15;
-        right.targetSpeed = 0.15;
-        if(ct%1000 == 0){
-            Serial.println(time);}
-    }else if(time < 22){
-        left.targetSpeed = -0.15;
-        right.targetSpeed = -0.15;
-        if(ct%1000 == 0){
-            Serial.println(time);}
-    }else{
-        left.targetSpeed = 0;
-        right.targetSpeed = 0;
-        if(ct%1000 == 0){
-            Serial.println(time);
+
+    left.targetSpeed = 0.15;
+    right.targetSpeed = 0.15;
+
             
-        }
-        finished = true;
-    }
 
     updateSpeeds();
 }
@@ -132,8 +115,7 @@ void updateSpeeds(){
         }
     }
 
-    rightWheel(right.currentSpeed);
-    leftWheel(left.currentSpeed);
+
     drive(left.currentSpeed, right.currentSpeed);
     if(ct%1000 == 0){
         Serial.print("left: ");
