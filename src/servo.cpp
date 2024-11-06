@@ -68,10 +68,10 @@ void loop()
     }
 
 
-if(!left.sensorPin && !right.sensorPin){
-    left.targetSpeed = 0.15;
-    right.targetSpeed = 0.15;
-}
+    if(!left.sensorPin && !right.sensorPin){
+        left.targetSpeed = 0.15;
+        right.targetSpeed = 0.15;
+    }
 
             
 
@@ -98,36 +98,8 @@ float calculateSpeedDelta(struct motor servo){
     return speedDelta;
 
 }
-void updateSpeeds(){
-    float speedDelta;
-    struct motor structArray [] = {left, right};
-    for (struct motor side :structArray){
-        speedDelta = calculateSpeedDelta(side);
-        if(side.targetSpeed > side.currentSpeed){
-            if(ct%1000 == 0){
-                Serial.print("targetspeed: ");
-                Serial.println(side.targetSpeed);
-            }
-        side.currentSpeed += speedDelta; 
-        if(side.targetSpeed<side.currentSpeed){ // if the new speed goes above the target speed
-            side.currentSpeed = left.targetSpeed; 
-            Serial.print("speed reached");
-            }
-        }
-        else{
-
-}
 
 
-
-float calculateSpeedDelta(struct motor servo){
-    float currentAcceleration;
-    currentAcceleration = acceleration*(tMaxSpeed - servo.currentSpeed);
-    float speedDelta = currentAcceleration * looptime;
-
-    return speedDelta;
-
-}
 void updateSpeeds(){
     float speedDelta;
     struct motor structArray [] = {left, right};
