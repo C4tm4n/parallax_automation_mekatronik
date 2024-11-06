@@ -2,6 +2,7 @@
 #include <Servo.h> 
 void updateSpeeds();
 
+void readSensors();
 struct motor{
 
     Servo servo;
@@ -41,6 +42,8 @@ void setup(){
     left.targetSpeed = 0;
     right.currentSpeed = 0;
     right.targetSpeed = 0;
+    left.sensorTrigered = false; 
+    right.sensorTrigered = false;
 }
 
 void drive(float leftSpeed, float rightSpeed){
@@ -52,6 +55,7 @@ void drive(float leftSpeed, float rightSpeed){
 
 void loop()
 {
+    readSensors();
     ct ++; 
     if(first){
         time = micros()/1000000.0;
@@ -62,16 +66,26 @@ void loop()
         time = micros()/1000000.0;
     
     }
-    left.sensorTrigered = false; 
-    right.sensorTrigered = false;
 
 
+if(!left.sensorPin && !right.sensorPin){
     left.targetSpeed = 0.15;
     right.targetSpeed = 0.15;
+}
 
             
 
     updateSpeeds();
+}
+
+void readSensors(){
+    if(digitalRead(left.sensorPin) == LOW){
+        left.sensorTrigered = true;
+    }
+    if(digitalRead(right.sensorPin) == LOW){
+        right.sensorTrigered = true;
+    }
+
 }
 
 
@@ -101,6 +115,40 @@ void updateSpeeds(){
             }
         }
         else{
+
+}
+
+
+
+float calculateSpeedDelta(struct motor servo){
+    float currentAcceleration;
+    currentAcceleration = acceleration*(tMaxSpeed - servo.currentSpeed);
+    float speedDelta = currentAcceleration * looptime;
+
+    return speedDelta;
+
+}
+void updateSpeeds(){
+    float speedDelta;
+    struct motor structArray [] = {left, right};
+    for (struct motor side :structArray)
+    {
+        speedDelta = calculateSpeedDelta(side);
+        if(side.targetSpeed > side.currentSpeed)
+        {
+            if(ct%1000 == 0)
+            {
+                Serial.print("targetspeed: ");
+                Serial.println(side.targetSpeed);
+            }
+            side.currentSpeed += speedDelta; 
+            if(side.targetSpeed<side.currentSpeed)
+            { // if the new speed goes above the target speed
+            side.currentSpeed = left.targetSpeed; 
+            Serial.print("speed reached");
+            }
+        }
+        else{
             side.currentSpeed -= speedDelta; 
             if(side.targetSpeed > side.currentSpeed){
                 side.currentSpeed = side.targetSpeed;
@@ -110,7 +158,8 @@ void updateSpeeds(){
 
 
     drive(left.currentSpeed, right.currentSpeed);
-    if(ct%1000 == 0){
+    if(ct%1000 == 0)
+    {
         Serial.print("left: ");
         Serial.println(left.currentSpeed);
         Serial.print("right: ");
