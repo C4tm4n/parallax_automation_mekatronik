@@ -49,13 +49,6 @@ void drive(float leftSpeed, float rightSpeed){
 
 }
 
-void rightWheel(float speed){
-    float microSeconds = 1498-592.32*speed;
-}
-void leftWheel(float speed){
-    left.servo.writeMicroseconds(1496.8+ 586.71*speed);
-
-}
 
 void loop()
 {
