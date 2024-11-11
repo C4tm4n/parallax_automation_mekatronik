@@ -56,13 +56,15 @@ void drive(float leftSpeed, float rightSpeed){
 void loop()
 {
     readSensors();
+    left.targetSpeed = 0.1;
+    right.targetSpeed = 0.1;
     ct ++; 
     if(first){
         time = micros()/1000000.0;
         first = false;
     }
     else{
-        looptime = micros()/1000000.0 -time;
+        looptime = micros()/100000.0 -time;
         time = micros()/1000000.0;
     
     }
@@ -82,8 +84,20 @@ void readSensors(){
     if(digitalRead(left.sensorPin) == LOW){
         left.sensorTrigered = true;
     }
+    else{
+        left.sensorTrigered = false;
+    }
     if(digitalRead(right.sensorPin) == LOW){
         right.sensorTrigered = true;
+    }
+    else{
+        right.sensorTrigered = false;
+    }
+    if(ct%1000 == 0)
+    {
+        Serial.print("sensors r + l:");
+        Serial.print(right.sensorTrigered);
+        Serial.println(left.sensorTrigered);
     }
 
 }
@@ -91,9 +105,9 @@ void readSensors(){
 
 
 float calculateSpeedDelta(struct motor servo){
-    float currentAcceleration;
+    double currentAcceleration;
     currentAcceleration = acceleration*(tMaxSpeed - servo.currentSpeed);
-    float speedDelta = currentAcceleration * looptime;
+    double speedDelta = currentAcceleration * looptime;
 
     return speedDelta;
 
@@ -101,33 +115,70 @@ float calculateSpeedDelta(struct motor servo){
 
 
 void updateSpeeds(){
-    float speedDelta;
-    struct motor structArray [] = {left, right};
-    for (struct motor side :structArray)
-    {
-        speedDelta = calculateSpeedDelta(side);
-        if(side.targetSpeed > side.currentSpeed)
+    double speedDelta;
+        speedDelta = calculateSpeedDelta(left);
+        if(left.targetSpeed > left.currentSpeed)
         {
+
+            left.currentSpeed += speedDelta; 
+            if(left.targetSpeed<left.currentSpeed)
+            { // if the new speed goes above the target speed
+            left.currentSpeed = left.targetSpeed; 
             if(ct%1000 == 0)
             {
-                Serial.print("targetspeed: ");
-                Serial.println(side.targetSpeed);
-            }
-            side.currentSpeed += speedDelta; 
-            if(side.targetSpeed<side.currentSpeed)
-            { // if the new speed goes above the target speed
-            side.currentSpeed = left.targetSpeed; 
             Serial.print("speed reached");
+            }
             }
         }
         else{
-            side.currentSpeed -= speedDelta; 
-            if(side.targetSpeed > side.currentSpeed){
-                side.currentSpeed = side.targetSpeed;
+            left.currentSpeed -= speedDelta; 
+            if(left.targetSpeed > left.currentSpeed){
+                left.currentSpeed = left.targetSpeed;
             }
-        }
     }
 
+            if(ct%1000 == 0)
+            {
+
+                Serial.print("targetspeed: ");
+                Serial.println(left.targetSpeed);
+                Serial.print("speeddelta: ");
+                Serial.println(speedDelta);
+                Serial.print("currentspped: ");
+                Serial.println(left.currentSpeed);
+            }
+
+        speedDelta = calculateSpeedDelta(right);
+        if(right.targetSpeed > right.currentSpeed)
+        {
+
+            right.currentSpeed += speedDelta; 
+            if(right.targetSpeed<right.currentSpeed)
+            { // if the new speed goes above the target speed
+            right.currentSpeed = right.targetSpeed; 
+            if(ct%1000 == 0)
+            {
+            Serial.print("speed reached");
+            }
+            }
+        }
+        else{
+            right.currentSpeed -= speedDelta; 
+            if(right.targetSpeed > right.currentSpeed){
+                right.currentSpeed = right.targetSpeed;
+            }
+    }
+
+            if(ct%1000 == 0)
+            {
+
+                Serial.print("targetspeed: ");
+                Serial.println(right.targetSpeed);
+                Serial.print("speeddelta: ");
+                Serial.println(speedDelta);
+                Serial.print("currentspped: ");
+                Serial.println(right.currentSpeed);
+            }
 
     drive(left.currentSpeed, right.currentSpeed);
     if(ct%1000 == 0)
