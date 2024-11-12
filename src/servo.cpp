@@ -30,6 +30,13 @@ bool driveRight = false;
 bool stop = false;
 double lastStop;
 int turnTime;
+enum turns {
+    RIGHT,
+    LEFT,
+    NONE,
+    UTURN
+};
+turns turn;
 
 void setup(){
     Serial.begin(9600);
@@ -90,18 +97,18 @@ void loop()
         right.targetSpeed = -0.15;
 
     }
-    else if(driveLeft){
+    else if(turn == LEFT){
         left.targetSpeed = -0.15;
         right.targetSpeed = 0.15;
         if(lastStop + turnTime <time){
-            driveLeft = false;
+            turn = NONE;
         }
     }
-    else if(driveRight){
+    else if(turn == RIGHT){
         left.targetSpeed = 0.15;
         right.targetSpeed = -0.15;
         if(lastStop + turnTime <time){
-            driveRight = false;
+            turn = NONE;
         }
     }
     else{
@@ -121,15 +128,15 @@ void loop()
     else if(left.sensorTrigered == 1) //if right sensor trigered
     {
         drivebackward = true;
-        driveLeft = true;
+        turn = LEFT;
         stop = true;
         turnTime = 0.42;
-        debug("turning right");
+        debug("turning left");
     }
     else if(right.sensorTrigered == 1) //if left sensor trigered
     {
         drivebackward = true;
-        driveRight = true;
+        turn = RIGHT;
         stop = true;
         turnTime = 0.42;
         debug("turning right");
@@ -137,7 +144,7 @@ void loop()
     else
     {
         drivebackward = true;
-        driveLeft = true;
+        turn = LEFT;
         stop = true;
         turnTime = 0.69;
         debug("driving backward");
@@ -146,6 +153,7 @@ void loop()
             
 
     updateSpeeds();
+    debug();
 }
 
 
@@ -162,6 +170,7 @@ void debug(){
         Serial.println(right.targetSpeed);
         Serial.print("currentspped: ");
         Serial.println(right.currentSpeed);
+        Serial.println(turn);
 
     }
 
