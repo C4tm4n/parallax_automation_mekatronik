@@ -1,8 +1,9 @@
 #include <arduino.h> 
 #include <Servo.h> 
 void updateSpeeds();
-
 void readSensors();
+void debug();
+void debug(String msg);
 struct motor{
 
     Servo servo;
@@ -14,7 +15,7 @@ struct motor{
 struct motor left;
 struct motor right;
 
-double acceleration = 0.3; 
+double acceleration = 0.2; 
 double tMaxSpeed = 0.2;
 double pMaxSpeed = 0.15;
 
@@ -123,10 +124,7 @@ void loop()
         driveLeft = true;
         stop = true;
         turnTime = 0.42;
-        if(ct%1000 == 0)
-        {
-            Serial.println("turning left");
-        }
+        debug("turning right");
     }
     else if(right.sensorTrigered == 1) //if left sensor trigered
     {
@@ -134,10 +132,7 @@ void loop()
         driveRight = true;
         stop = true;
         turnTime = 0.42;
-        if(ct%1000 == 0)
-        {
-            Serial.println("turning right");
-        }
+        debug("turning right");
     }
     else
     {
@@ -145,10 +140,7 @@ void loop()
         driveLeft = true;
         stop = true;
         turnTime = 0.69;
-        if(ct%1000 == 0)
-        {
-            Serial.println("driving backward");
-        }
+        debug("driving backward");
     }
 
             
@@ -156,16 +148,32 @@ void loop()
     updateSpeeds();
 }
 
-void readSensors(){
-    left.sensorTrigered = digitalRead(left.sensorPin);
-    right.sensorTrigered = digitalRead(right.sensorPin);
-    if(ct%1000 == 0)
-    {
+
+void debug(){
+    if(ct%2000 == 0){
         Serial.print("sensors r + l:");
         Serial.print(right.sensorTrigered);
         Serial.println(left.sensorTrigered);
+        Serial.print("left targetspeed: ");
+        Serial.println(left.targetSpeed);
+        Serial.print("currentspped: ");
+        Serial.println(left.currentSpeed);
+        Serial.print("right targetspeed: ");
+        Serial.println(right.targetSpeed);
+        Serial.print("currentspped: ");
+        Serial.println(right.currentSpeed);
+
     }
 
+}
+void debug(String msg){
+    if(ct%2000 == 0){
+        Serial.println(msg);
+    }
+}
+void readSensors(){
+    left.sensorTrigered = digitalRead(left.sensorPin);
+    right.sensorTrigered = digitalRead(right.sensorPin);
 }
 
 
@@ -191,10 +199,6 @@ void updateSpeeds(){
         if(left.targetSpeed<left.currentSpeed)
         { // if the new speed goes above the target speed
         left.currentSpeed = left.targetSpeed; 
-        if(ct%1000 == 0)
-        {
-        Serial.print("speed reached");
-        }
         }
     }
     else{
@@ -204,16 +208,6 @@ void updateSpeeds(){
             }
     }
 
-    if(ct%1000 == 0)
-    {
-
-        Serial.print("targetspeed: ");
-        Serial.println(left.targetSpeed);
-        Serial.print("speeddelta: ");
-        Serial.println(speedDelta);
-        Serial.print("currentspped: ");
-        Serial.println(left.currentSpeed);
-            }
 
     speedDelta = calculateSpeedDelta(right);
     if(right.targetSpeed > right.currentSpeed)
@@ -223,10 +217,6 @@ void updateSpeeds(){
         if(right.targetSpeed<right.currentSpeed)
         { // if the new speed goes above the target speed
         right.currentSpeed = right.targetSpeed; 
-        if(ct%1000 == 0)
-        {
-        Serial.print("speed reached");
-        }
         }
     }
     else{
@@ -236,23 +226,6 @@ void updateSpeeds(){
             }
     }
 
-    if(ct%1000 == 0)
-    {
-
-        Serial.print("targetspeed: ");
-        Serial.println(right.targetSpeed);
-        Serial.print("speeddelta: ");
-        Serial.println(speedDelta);
-        Serial.print("currentspped: ");
-        Serial.println(right.currentSpeed);
-    }
 
     drive(left.currentSpeed, right.currentSpeed);
-    if(ct%1000 == 0)
-    {
-        Serial.print("left: ");
-        Serial.println(left.currentSpeed);
-        Serial.print("right: ");
-        Serial.println(right.currentSpeed);
-    }
 }
