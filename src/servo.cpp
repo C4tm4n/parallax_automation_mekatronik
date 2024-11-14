@@ -2,6 +2,7 @@
 #include <Servo.h> 
 void updateSpeeds();
 void readSensors();
+void calculatePosition(int movement);
 void debug();
 void debug(String msg);
 struct motor{
@@ -15,9 +16,12 @@ struct motor{
 struct motor left;
 struct motor right;
 
-double acceleration = 0.2; 
-double tMaxSpeed = 0.2;
-double pMaxSpeed = 0.15;
+#define WheelBase 0.08 
+#define sensorOffset 0.1
+#define sensorOffsetSide 0.05
+#define acceleration 0.2
+#define tMaxSpeed 0.2
+#define pMaxSpeed 0.15
 
 double looptime = 0.0001;
 double time; 
@@ -37,6 +41,11 @@ enum turns {
     UTURN
 };
 turns turn;
+
+int xPos = 0;
+int yPos = 0;
+int rotation = 0;
+
 
 void setup(){
     Serial.begin(9600);
@@ -156,6 +165,26 @@ void loop()
     debug();
 }
 
+void estimateMovement(){
+    int movement;
+    int diff = left.targetSpeed -right.targetSpeed;
+    if(diff >0){
+        movement = left.targetSpeed * looptime;
+    }
+    else{
+        movement = right.targetSpeed * looptime;
+    }
+    
+
+    int relativeRotation = diff/WheelBase;
+    rotation += relativeRotation;
+    calculatePosition(movement);
+}
+void calculatePosition(int movement){
+    xPos += movement* sin(rotation);
+    yPos += movement* cos(rotation);
+    
+}
 
 void debug(){
     if(ct%2000 == 0){
