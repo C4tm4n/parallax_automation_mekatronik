@@ -4,7 +4,8 @@ void updateSpeeds();
 void readSensors();
 void calculatePosition(int movement);
 void debug();
-void debug(String msg);
+void debug(String msg, int freq);
+void estimateMovement();
 struct motor{
 
     Servo servo;
@@ -16,9 +17,25 @@ struct motor{
 struct motor left;
 struct motor right;
 
-#define WheelBase 0.08 
-#define sensorOffset 0.1
-#define sensorOffsetSide 0.05
+
+struct obstacle
+{
+    int minX;
+    int maxX;
+    int minY;
+    int maxY;
+    int connected;
+};
+
+#define maxObstacles 15
+struct obstacle obstacles[maxObstacles];
+int obstacleCt = 0;
+
+
+
+#define WheelBase 0.107 
+#define sensorOffset 0.06
+#define sensorOffsetSide 0.08
 #define acceleration 0.2
 #define tMaxSpeed 0.2
 #define pMaxSpeed 0.15
@@ -88,7 +105,7 @@ void loop()
         first = false;
     }
     else{
-        looptime = micros()/100000.0 -time;
+        looptime = micros()/1000000.0 -time;
         time = micros()/1000000.0;
     
     }
@@ -104,16 +121,19 @@ void loop()
     else if(drivebackward){
         left.targetSpeed = -0.15;
         right.targetSpeed = -0.15;
+        debug("driving backward",1000);
 
     }
     else if(turn == LEFT){
         left.targetSpeed = -0.15;
         right.targetSpeed = 0.15;
+        debug("setting left turn",1000);
         if(lastStop + turnTime <time){
             turn = NONE;
         }
     }
     else if(turn == RIGHT){
+        debug("setting right turn",1000);
         left.targetSpeed = 0.15;
         right.targetSpeed = -0.15;
         if(lastStop + turnTime <time){
@@ -126,10 +146,12 @@ void loop()
 
     }
 
-    if(left.sensorTrigered == 1 && right.sensorTrigered == 1){
+    if(left.sensorTrigered == 1 && right.sensorTrigered == 1){ //no sensor triggered 
         if(drivebackward){
             drivebackward = false;
             stop = true;
+            debug("stopping driving backward", 1);
+
         }
 
 
@@ -139,30 +161,31 @@ void loop()
         drivebackward = true;
         turn = LEFT;
         stop = true;
-        turnTime = 0.42;
-        debug("turning left");
+        turnTime = 2.42;
+        obstacle();
     }
     else if(right.sensorTrigered == 1) //if left sensor trigered
     {
         drivebackward = true;
         turn = RIGHT;
         stop = true;
-        turnTime = 0.42;
-        debug("turning right");
+        turnTime = 2.42;
+        obstacle();
     }
-    else
+    else //both sensors triggered
     {
         drivebackward = true;
         turn = LEFT;
         stop = true;
-        turnTime = 0.69;
-        debug("driving backward");
+        turnTime = 10.69;
+        obstacle();
     }
 
             
 
     updateSpeeds();
     debug();
+    estimateMovement();
 }
 
 void estimateMovement(){
@@ -181,9 +204,20 @@ void estimateMovement(){
     calculatePosition(movement);
 }
 void calculatePosition(int movement){
-    xPos += movement* sin(rotation);
-    yPos += movement* cos(rotation);
+    xPos += movement* asin(rotation);
+    yPos += movement* acos(rotation);
     
+}
+
+
+void mapping(){
+
+}
+
+void obstacle(){
+    int obstacleX = xPos + sensorOffset/cos(rotation);
+
+
 }
 
 void debug(){
@@ -200,12 +234,17 @@ void debug(){
         Serial.print("currentspped: ");
         Serial.println(right.currentSpeed);
         Serial.println(turn);
+        Serial.print("looptime: ");
+        Serial.println(looptime,6);
+        Serial.println(time,6);
+        Serial.println(lastStop,6);
+        Serial.println(turn);
 
     }
 
 }
-void debug(String msg){
-    if(ct%2000 == 0){
+void debug(String msg, int freq){
+    if(ct%freq == 0){
         Serial.println(msg);
     }
 }
@@ -219,7 +258,7 @@ void readSensors(){
 float calculateSpeedDelta(struct motor servo){
     double currentAcceleration;
     //currentAcceleration = acceleration*(tMaxSpeed - servo.currentSpeed);
-    currentAcceleration = 0.3;
+    currentAcceleration = acceleration;
     double speedDelta = currentAcceleration * looptime;
 
     return speedDelta;
@@ -263,7 +302,6 @@ void updateSpeeds(){
             right.currentSpeed = right.targetSpeed;
             }
     }
-
 
     drive(left.currentSpeed, right.currentSpeed);
 }
