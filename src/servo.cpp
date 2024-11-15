@@ -1,11 +1,15 @@
 #include <arduino.h> 
+#include <constants.h>
 #include <Servo.h> 
+#include <cppQueue.h>
 void updateSpeeds();
 void readSensors();
 void calculatePosition(int movement);
 void debug();
 void debug(String msg, int freq);
 void estimateMovement();
+void evaluateSensorReadings();
+void performAction();
 struct motor{
 
     Servo servo;
@@ -27,18 +31,11 @@ struct obstacle
     int connected;
 };
 
-#define maxObstacles 15
 struct obstacle obstacles[maxObstacles];
 int obstacleCt = 0;
 
 
 
-#define WheelBase 0.107 
-#define sensorOffset 0.06
-#define sensorOffsetSide 0.08
-#define acceleration 0.2
-#define tMaxSpeed 0.2
-#define pMaxSpeed 0.15
 
 double looptime = 0.0001;
 double time; 
@@ -51,13 +48,29 @@ bool driveRight = false;
 bool stop = false;
 double lastStop;
 int turnTime;
+enum sensorReading{
+    BOTH,
+    CLEAR,
+    SLEFT,
+    SRIGHT
+}currentReading;
+
+
 enum turns {
     RIGHT,
     LEFT,
     NONE,
-    UTURN
+    UTURN,
+    BACKWARD,
+    STOP,
+    EVALUATE
 };
 turns turn;
+turns currentAction;
+turns nextAction;
+
+cppQueue actions(sizeof(turn),3, FIFO);
+
 
 int xPos = 0;
 int yPos = 0;
@@ -109,6 +122,16 @@ void loop()
         time = micros()/1000000.0;
     
     }
+    evaluateSensorReadings();
+
+            
+
+    updateSpeeds();
+    debug();
+    estimateMovement();
+}
+void performAction(){
+
     if(stop){
         left.targetSpeed = 0;
         right.targetSpeed = 0;
@@ -143,49 +166,60 @@ void loop()
     else{
         left.targetSpeed = 0.15;
         right.targetSpeed = 0.15;
-
     }
 
+}
+
+void evaluateSensorReadings(){
     if(left.sensorTrigered == 1 && right.sensorTrigered == 1){ //no sensor triggered 
+        currentReading = CLEAR;
         if(drivebackward){
             drivebackward = false;
             stop = true;
             debug("stopping driving backward", 1);
-
         }
-
-
     }
     else if(left.sensorTrigered == 1) //if right sensor trigered
     {
+        currentReading = SRIGHT;
         drivebackward = true;
         turn = LEFT;
         stop = true;
         turnTime = 2.42;
         obstacle();
+        if(nextAction == NONE ){
+            currentAction = BACKWARD;
+            nextAction = LEFT;
+        }
     }
     else if(right.sensorTrigered == 1) //if left sensor trigered
     {
+        currentReading = SLEFT;
         drivebackward = true;
         turn = RIGHT;
         stop = true;
         turnTime = 2.42;
         obstacle();
+        if(nextAction == NONE ){
+            currentAction = BACKWARD;
+            nextAction = RIGHT;
+        }
     }
     else //both sensors triggered
     {
+
+        currentReading = BOTH;
         drivebackward = true;
         turn = LEFT;
         stop = true;
         turnTime = 10.69;
         obstacle();
+        if(nextAction != EVALUATE ){
+            currentAction = BACKWARD;
+            nextAction = EVALUATE;
+        }
     }
 
-            
-
-    updateSpeeds();
-    debug();
-    estimateMovement();
 }
 
 void estimateMovement(){
@@ -206,7 +240,6 @@ void estimateMovement(){
 void calculatePosition(int movement){
     xPos += movement* asin(rotation);
     yPos += movement* acos(rotation);
-    
 }
 
 
@@ -258,7 +291,12 @@ void readSensors(){
 float calculateSpeedDelta(struct motor servo){
     double currentAcceleration;
     //currentAcceleration = acceleration*(tMaxSpeed - servo.currentSpeed);
-    currentAcceleration = acceleration;
+    if(abs(left.targetSpeed)>abs(left.currentSpeed)){
+        currentAcceleration = acceleration;
+    }
+    else{
+        currentAcceleration = breakAcceleration;
+    }
     double speedDelta = currentAcceleration * looptime;
 
     return speedDelta;
