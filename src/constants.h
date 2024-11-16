@@ -1,4 +1,3 @@
-#include <arduino.h> 
 #define WheelBase 0.107 
 #define sensorOffset 0.06
 #define sensorOffsetSide 0.08

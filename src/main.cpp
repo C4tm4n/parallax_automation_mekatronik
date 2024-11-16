@@ -1,26 +1,13 @@
-#include <arduino.h> 
-#include <constants.h>
 #include <Servo.h> 
+#include <arduino.h> 
 #include <cppQueue.h>
-void updateSpeeds();
-void readSensors();
-void calculatePosition(int movement);
-void debug();
-void debug(String msg, int freq);
-void estimateMovement();
-void evaluateSensorReadings();
-void performAction();
-struct motor{
+#include "drive.h"
+#include "constants.h"
+#include "main.h"
 
-    Servo servo;
-    double currentSpeed;
-    double targetSpeed;
-    int sensorPin;
-    int sensorTrigered;
-};
+
 struct motor left;
 struct motor right;
-
 
 struct obstacle
 {
@@ -37,7 +24,6 @@ int obstacleCt = 0;
 
 
 
-double looptime = 0.0001;
 double time; 
 bool first = true;
 unsigned int ct;
@@ -47,7 +33,7 @@ bool driveLeft = false;
 bool driveRight = false;
 bool stop = false;
 double lastStop;
-int turnTime;
+int turnTime = 0.5;
 enum sensorReading{
     BOTH,
     CLEAR,
@@ -100,18 +86,11 @@ void setup(){
 
 }
 
-void drive(float leftSpeed, float rightSpeed){
-    left.servo.writeMicroseconds(1496.8- 586.71*leftSpeed);
-    right.servo.writeMicroseconds(1498+592.32*rightSpeed);
-
-}
 
 
 void loop()
 {
     readSensors();
-    left.targetSpeed = 0.1;
-    right.targetSpeed = 0.1;
     ct ++; 
     if(first){
         time = micros()/1000000.0;
@@ -141,13 +120,13 @@ void performAction(){
         }
         
     }
-    else if(drivebackward){
+    else if(currentAction == BACKWARD){
         left.targetSpeed = -0.15;
         right.targetSpeed = -0.15;
         debug("driving backward",1000);
 
     }
-    else if(turn == LEFT){
+    else if(currentAction == LEFT){
         left.targetSpeed = -0.15;
         right.targetSpeed = 0.15;
         debug("setting left turn",1000);
@@ -155,7 +134,7 @@ void performAction(){
             turn = NONE;
         }
     }
-    else if(turn == RIGHT){
+    else if(currentAction == RIGHT){
         debug("setting right turn",1000);
         left.targetSpeed = 0.15;
         right.targetSpeed = -0.15;
@@ -182,10 +161,6 @@ void evaluateSensorReadings(){
     else if(left.sensorTrigered == 1) //if right sensor trigered
     {
         currentReading = SRIGHT;
-        drivebackward = true;
-        turn = LEFT;
-        stop = true;
-        turnTime = 2.42;
         obstacle();
         if(nextAction == NONE ){
             currentAction = BACKWARD;
@@ -195,10 +170,6 @@ void evaluateSensorReadings(){
     else if(right.sensorTrigered == 1) //if left sensor trigered
     {
         currentReading = SLEFT;
-        drivebackward = true;
-        turn = RIGHT;
-        stop = true;
-        turnTime = 2.42;
         obstacle();
         if(nextAction == NONE ){
             currentAction = BACKWARD;
@@ -209,10 +180,6 @@ void evaluateSensorReadings(){
     {
 
         currentReading = BOTH;
-        drivebackward = true;
-        turn = LEFT;
-        stop = true;
-        turnTime = 10.69;
         obstacle();
         if(nextAction != EVALUATE ){
             currentAction = BACKWARD;
@@ -240,6 +207,10 @@ void estimateMovement(){
 void calculatePosition(int movement){
     xPos += movement* asin(rotation);
     yPos += movement* acos(rotation);
+}
+
+int relativ2absolute(int relativ){
+
 }
 
 
@@ -287,59 +258,3 @@ void readSensors(){
 }
 
 
-
-float calculateSpeedDelta(struct motor servo){
-    double currentAcceleration;
-    //currentAcceleration = acceleration*(tMaxSpeed - servo.currentSpeed);
-    if(abs(left.targetSpeed)>abs(left.currentSpeed)){
-        currentAcceleration = acceleration;
-    }
-    else{
-        currentAcceleration = breakAcceleration;
-    }
-    double speedDelta = currentAcceleration * looptime;
-
-    return speedDelta;
-
-}
-
-
-void updateSpeeds(){
-    double speedDelta;
-    speedDelta = calculateSpeedDelta(left);
-    if(left.targetSpeed > left.currentSpeed)
-    {
-
-        left.currentSpeed += speedDelta; 
-        if(left.targetSpeed<left.currentSpeed)
-        { // if the new speed goes above the target speed
-        left.currentSpeed = left.targetSpeed; 
-        }
-    }
-    else{
-        left.currentSpeed -= speedDelta; 
-        if(left.targetSpeed > left.currentSpeed){
-            left.currentSpeed = left.targetSpeed;
-            }
-    }
-
-
-    speedDelta = calculateSpeedDelta(right);
-    if(right.targetSpeed > right.currentSpeed)
-    {
-
-        right.currentSpeed += speedDelta; 
-        if(right.targetSpeed<right.currentSpeed)
-        { // if the new speed goes above the target speed
-        right.currentSpeed = right.targetSpeed; 
-        }
-    }
-    else{
-        right.currentSpeed -= speedDelta; 
-        if(right.targetSpeed > right.currentSpeed){
-            right.currentSpeed = right.targetSpeed;
-            }
-    }
-
-    drive(left.currentSpeed, right.currentSpeed);
-}
