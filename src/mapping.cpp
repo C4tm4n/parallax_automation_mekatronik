@@ -4,18 +4,18 @@
 #include "debug.h"
 struct obstacle
 {
-    int minX;
-    int maxX;
-    int minY;
-    int maxY;
+    int X;
+    int Y;
+    int width;
+    int height;
     int connected;
 };
 struct obstacle obstacles[maxObstacles];
 int obstacleCt = 0;
 
-int xPos = 0;
-int yPos = 0;
-int rotation = 0;
+double xPos = 0;
+double yPos = 0;
+double rotation = 0;
 
 turns currentAction;
 turns nextAction;
@@ -71,8 +71,8 @@ void evaluateSensorReadings(){
 }
 
 void estimateMovement(){
-    int movement;
-    int diff = left.targetSpeed -right.targetSpeed;
+    double movement;
+    double diff = (left.targetSpeed -right.targetSpeed);
     if(diff >0){
         movement = left.targetSpeed * looptime;
     }
@@ -85,12 +85,12 @@ void estimateMovement(){
     estimateRotation(diff);
 }
 
-void calculatePosition(int movement){
+void calculatePosition(double movement){
     xPos += movement* asin(rotation);
     yPos += movement* acos(rotation);
 }
 
-int relativ2absolute(int relativ, bool isX){
+int relativ2absolute(double relativ, bool isX){
     if(isX){
         return xPos + relativ;
     }
@@ -102,8 +102,8 @@ int relativ2absolute(int relativ, bool isX){
 
 }
 
-void estimateRotation(int diff){
-    int relativeRotation = diff*looptime/(WheelBase);
+void estimateRotation(double diff){
+    double relativeRotation = diff*looptime/(WheelBase);
     rotation += relativeRotation;
 
 //rotaion = singleWheelmovemnt /circlediameter * 2Pi
@@ -117,20 +117,32 @@ void mapping(){
 }
 
 void addObstacle(){
-    int obstacleX = xPos + sensorOffset*acos(rotation) +sensorOffsetSide*asin(rotation);
-    int obstacleY = xPos + sensorOffset*asin(rotation) +sensorOffsetSide*acos(rotation);
+    double obstacleX = xPos + sensorOffset*acos(rotation) +sensorOffsetSide*asin(rotation);
+    double obstacleY = xPos + sensorOffset*asin(rotation) +sensorOffsetSide*acos(rotation);
     obstacle newObstackle;
-    newObstackle.maxX = obstacleX;
-    newObstackle.minX = obstacleX;
-    newObstackle.maxY = obstacleY;
-    newObstackle.minY = obstacleY;
+    newObstackle.X = obstacleX;
+    newObstackle.Y = obstacleY;
+    newObstackle.width = 0.05;
+    newObstackle.height = 0.05;
 
     obstacles[obstacleCt%maxObstacles] = newObstackle; 
 }
 
-void checkObstacles(){
+void checkObstaclesClose(double x, double y){
+    double xDistance;
+    double yDistance;
+    for (obstacle obs : obstacles){
+        yDistance = y - obs.Y;
+        if(yDistance >0.15){
+            if(yDistance < y +0.15){
 
-    for (obstacle obstacle : obstacles){
+            }
+
+        }
+        xDistance = x - obs.X;
+        if(xDistance >0){
+            
+        }
 
     }
 }

@@ -19,7 +19,7 @@ bool driveLeft = false;
 bool driveRight = false;
 bool stop = false;
 double lastStop;
-int turnTime = 0.5;
+double turnTime = 0.5;
 
 
 

@@ -1,7 +1,8 @@
 #include <arduino.h> 
 void readSensors();
-void calculatePosition(int movement);
+void calculatePosition(double movement);
 void estimateMovement();
 void evaluateSensorReadings();
 void performAction();
-void estimateRotation(int diff);
+void estimateRotation(double diff);
+void checkObstaclesClose(double x, double y);

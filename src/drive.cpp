@@ -9,8 +9,8 @@ struct motor right;
 
 
 void drive2(int absoluteX, int absoluteY, bool backward =false){
-    int relativeX = absoluteX-xPos; //ignoring rotation
-    int relativeY = absoluteY -yPos;
+    double relativeX = absoluteX-xPos; //ignoring rotation
+    double relativeY = absoluteY -yPos;
 
     if(abs(rotation) < PI/4){
         if(relativeX > 0){
@@ -37,12 +37,12 @@ void drive2(int absoluteX, int absoluteY, bool backward =false){
 
 }
 
-void drive(float leftSpeed, float rightSpeed){
+void drive(double leftSpeed, double rightSpeed){
     left.servo.writeMicroseconds(1496.8- 586.71*leftSpeed);
     right.servo.writeMicroseconds(1498+592.32*rightSpeed);
 }
 
-float calculateSpeedDelta(struct motor servo){
+double calculateSpeedDelta(struct motor servo){
     double currentAcceleration;
     //currentAcceleration = acceleration*(tMaxSpeed - servo.currentSpeed);
     if(abs(left.targetSpeed)>abs(left.currentSpeed)){

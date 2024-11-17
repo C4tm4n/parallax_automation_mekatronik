@@ -11,16 +11,15 @@
 #define maxObstacles 15
 
 extern double looptime;
-extern int xPos;
-extern int yPos;
-extern int rotation;
+extern double xPos;
+extern double yPos;
+extern double rotation;
 extern unsigned int ct;
 extern double time;
 extern bool stop;
 extern double lastStop;
 
 struct motor{
-
     Servo servo;
     double currentSpeed;
     double targetSpeed;
@@ -31,8 +30,8 @@ extern struct motor left;
 extern struct motor right;
 
 struct target{
-    int x;
-    int y;
+    double x;
+    double y;
 };
 
 enum turns {
