@@ -1,11 +1,41 @@
 #include <arduino.h> 
 #include <Servo.h> 
-#include <constants.h>
 #include "drive.h"
+#include "variables.h"
 
 double looptime = 0.0001;
-extern struct motor left;
-extern struct motor right;
+struct motor left;
+struct motor right;
+
+
+void drive2(int absoluteX, int absoluteY, bool backward =false){
+    int relativeX = absoluteX-xPos; //ignoring rotation
+    int relativeY = absoluteY -yPos;
+
+    if(abs(rotation) < PI/4){
+        if(relativeX > 0){
+            right.targetSpeed = min(relativeX/10*pMaxSpeed,pMaxSpeed);
+            left.targetSpeed = min(relativeX/10*pMaxSpeed,pMaxSpeed);
+        }
+        else if(backward){
+            right.targetSpeed = max(relativeX/10*pMaxSpeed,-pMaxSpeed);
+            left.targetSpeed = max(relativeX/10*pMaxSpeed,-pMaxSpeed);
+        }
+    }
+    else if(abs(rotation) < PI * 3/4){
+        if(relativeY > 0){
+            if(rotation >0){
+                right.targetSpeed = min(relativeY/10*pMaxSpeed,pMaxSpeed);
+                left.targetSpeed = min(relativeY/10*pMaxSpeed,pMaxSpeed);
+            }
+        }
+        else if(backward){
+            right.targetSpeed = max(relativeX/10*pMaxSpeed,-pMaxSpeed);
+            left.targetSpeed = max(relativeX/10*pMaxSpeed,-pMaxSpeed);
+        }
+    }
+
+}
 
 void drive(float leftSpeed, float rightSpeed){
     left.servo.writeMicroseconds(1496.8- 586.71*leftSpeed);
