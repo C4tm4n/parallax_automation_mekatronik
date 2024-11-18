@@ -13,17 +13,8 @@
 
 double time; 
 bool first = true;
-bool finished = false;
-bool drivebackward = false;
-bool driveLeft = false;
-bool driveRight = false;
 bool stop = false;
 double lastStop;
-double turnTime = 0.5;
-
-
-
-
 
 
 
@@ -37,8 +28,6 @@ void setup(){
 
     pinMode(left.sensorPin, INPUT);
     pinMode(right.sensorPin, INPUT);
-
-
 
     
     left.currentSpeed = 0;

@@ -8,7 +8,23 @@ struct motor left;
 struct motor right;
 
 
-void drive2(int absoluteX, int absoluteY, bool backward =false){
+
+void rotate(double targetRotation){
+    double deltaRotation = targetRotation -rotation;
+    double rotationSpeed = min(maxRotationSpeed*abs(deltaRotation)/PI*4,maxRotationSpeed);
+    if(deltaRotation>0){
+        right.targetSpeed = -rotationSpeed;
+        left.targetSpeed = rotationSpeed;
+    }
+    else{
+        right.targetSpeed = rotationSpeed;
+        left.targetSpeed = -rotationSpeed;
+    }
+
+}
+
+
+void drive2(double absoluteX, double absoluteY, bool backward =false){
     double relativeX = absoluteX-xPos; //ignoring rotation
     double relativeY = absoluteY -yPos;
 

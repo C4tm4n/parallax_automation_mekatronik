@@ -32,6 +32,9 @@ void performAction(){
         }
         
     }
+    else if(true){
+        int test;
+    }
 
 }
 
@@ -42,7 +45,8 @@ void evaluateSensorReadings(){
     else if(left.sensorTrigered == 1) //if right sensor trigered
     {
         currentReading = SRIGHT;
-        obstacle();
+        foundObstacle(1);
+
         if(nextAction == NONE ){
             currentAction = BACKWARD;
             nextAction = LEFT;
@@ -51,7 +55,7 @@ void evaluateSensorReadings(){
     else if(right.sensorTrigered == 1) //if left sensor trigered
     {
         currentReading = SLEFT;
-        obstacle();
+        foundObstacle(-1);
         if(nextAction == NONE ){
             currentAction = BACKWARD;
             nextAction = RIGHT;
@@ -61,7 +65,7 @@ void evaluateSensorReadings(){
     {
 
         currentReading = BOTH;
-        obstacle();
+        foundObstacle(0);
         if(nextAction != EVALUATE ){
             currentAction = BACKWARD;
             nextAction = EVALUATE;
@@ -69,6 +73,7 @@ void evaluateSensorReadings(){
     }
 
 }
+
 
 void estimateMovement(){
     double movement;
@@ -113,38 +118,88 @@ void estimateRotation(double diff){
 
 
 void mapping(){
+    int forward = checkForward();
+    int right = checkObstaclesClose(xPos + 0.1, yPos+0.1*(forward) );
+    int left = checkObstaclesClose(xPos - 0.1, yPos+0.1*(forward) );
+
 
 }
 
-void addObstacle(){
-    double obstacleX = xPos + sensorOffset*acos(rotation) +sensorOffsetSide*asin(rotation);
-    double obstacleY = xPos + sensorOffset*asin(rotation) +sensorOffsetSide*acos(rotation);
+int checkForward(){
+    int i;
+    for(i = 0; i<targetCT; i++){
+        int state = checkObstaclesClose(xPos, yPos +0.1* i);
+        if(state == -1){
+            continue;
+        }
+        else{
+            i--;
+            break;
+        }
+    }
+    return i;
+}
+
+
+
+
+void foundObstacle(int side){
+    double obstacleX = xPos + sensorOffset*acos(rotation) +sensorOffsetSide*asin(rotation) *side;
+    double obstacleY = xPos + sensorOffset*asin(rotation) +sensorOffsetSide*acos(rotation)*side;
+
+    int close = checkObstaclesClose(obstacleX,obstacleY);
+    //if(close == -1){
+    if(true){
+        addObstacle(obstacleX, obstacleY);
+    }
+    else{
+        obstacle* ptr;
+        ptr = &obstacles[close];
+        if((*ptr).X >obstacleX){
+            ptr->X = obstacleX;
+        }
+        else if((*ptr).X +(*ptr).width<obstacleX){
+            ptr->width = obstacleX - (*ptr).X;
+        }
+        if((*ptr).Y >obstacleY){
+            ptr->Y = obstacleY;
+        }
+        else if((*ptr).Y +(*ptr).height<obstacleY){
+            ptr->height = obstacleY - (*ptr).Y;
+        }
+    }
+
+
+}
+
+void addObstacle(double obstacleX, double obstacleY){
     obstacle newObstackle;
     newObstackle.X = obstacleX;
     newObstackle.Y = obstacleY;
-    newObstackle.width = 0.05;
-    newObstackle.height = 0.05;
+    newObstackle.width = 0.01;
+    newObstackle.height = 0.01;
 
     obstacles[obstacleCt%maxObstacles] = newObstackle; 
 }
 
-void checkObstaclesClose(double x, double y){
+int checkObstaclesClose(double x, double y){
     double xDistance;
     double yDistance;
-    for (obstacle obs : obstacles){
-        yDistance = y - obs.Y;
-        if(yDistance >0.15){
-            if(yDistance < y +0.15){
+    for (int i = 0; i<obstacleCt%maxObstacles; i++){
+        obstacle obs = obstacles[i];
 
+        yDistance = y - obs.Y;
+        if(yDistance >-0.15 && yDistance < (obs.height +0.15)){
+            xDistance = x - obs.X;
+            if(xDistance >-0.15 && xDistance < (obs.width +0.15)){
+                return i;
+                
             }
 
         }
-        xDistance = x - obs.X;
-        if(xDistance >0){
-            
-        }
 
     }
+    return -1; 
 }
 
 void readSensors(){
