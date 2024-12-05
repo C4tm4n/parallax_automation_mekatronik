@@ -7,10 +7,11 @@
 #define acceleration 0.2
 #define breakAcceleration 1
 #define tMaxSpeed 0.2
-#define pMaxSpeed 0.15
-#define maxRotationSpeed 0.1
-#define maxObstacles 30
+#define pMaxSpeed .15
+#define maxRotationSpeed 0.15
+#define maxObstacles 20
 #define targetCT 10
+#define breakingDistance 0.01
 
 extern double looptime;
 extern double xPos;
@@ -34,11 +35,13 @@ extern struct motor right;
 struct target{
     double x;
     double y;
-    double rotation;
+    bool isX;
 };
 extern target targets[targetCT];
 extern int currentTarget;
 extern int lastTarget;
+
+extern struct target currentTargetStruct;
 
 enum turns {
     RIGHT,

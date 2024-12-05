@@ -1,0 +1,71 @@
+#include <Servo.h> 
+#include <arduino.h> 
+#include <cppQueue.h>
+#include "drive.h"
+#include "variables.h"
+#include "debug.h"
+#include "mapping.h"
+
+
+
+double time; 
+bool first = true;
+bool stop = false;
+double lastStop;
+
+
+void setup(){
+    Serial.begin(9600);
+    left.servo.attach(10);
+    right.servo.attach(11);
+
+    left.sensorPin = 5;
+    right.sensorPin = 7;
+
+    pinMode(left.sensorPin, INPUT);
+    pinMode(right.sensorPin, INPUT);
+
+    
+    left.currentSpeed = 0;
+    left.targetSpeed = 0;
+    right.currentSpeed = 0;
+    right.targetSpeed = 0;
+    left.sensorTrigered = false; 
+    right.sensorTrigered = false;
+
+    targets[0].y = 0.1;
+    targets[0].x = 0;
+    targets[0].isX = false;
+    targets[1].y = 0.1;
+    targets[1].x = -0.1;
+    targets[1].isX = true;
+    targets[2].y = 0.25;
+    targets[2].x = 0.1;
+    targets[2].isX = false;
+    currentTarget = 0;
+    lastTarget = 2;
+
+}
+
+
+
+void loop()
+{
+    readSensors();
+    ct ++; 
+    if(first){
+        time = micros()/1000000.0;
+        first = false;
+    }
+    else{
+        looptime = micros()/1000000.0 -time;
+        time = micros()/1000000.0;
+    
+    }
+
+            
+    performAction();
+    updateSpeeds();
+    debug();
+    estimateMovement();
+}

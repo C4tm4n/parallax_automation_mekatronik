@@ -2,6 +2,7 @@
 #include <mapping.h>
 #include "variables.h"
 #include "debug.h"
+#include "drive.h"
 struct obstacle
 {
     int X;
@@ -16,6 +17,9 @@ int obstacleCt = 0;
 double xPos = 0;
 double yPos = 0;
 double rotation = 0;
+target targets[targetCT];
+int currentTarget;
+int lastTarget;
 
 turns currentAction;
 turns nextAction;
@@ -26,14 +30,51 @@ void performAction(){
     if(stop){
         left.targetSpeed = 0;
         right.targetSpeed = 0;
-        if(left.currentSpeed == 0 && right.currentSpeed == 0){
+        if(abs(left.currentSpeed) < 0.1 && abs(right.currentSpeed) < 0.1){
             stop = false;
             lastStop = time;
         }
         
     }
-    else if(true){
-        int test;
+    else{
+        //target* ptr = targets[currentTarget];
+        if(targets[currentTarget].isX){
+            int direction;
+            if(targets[currentTarget].x >xPos){
+                direction = 1;
+            }
+            else{
+                direction = -1;
+            }
+            if(rotate(direction*PI/2)){
+                debug("drive x",2000);
+                debug(String(targets[currentTarget].y),2000);
+                debug(String(targets[currentTarget].x),2000);
+                if(drive2(targets[currentTarget].x,targets[currentTarget].y)){
+                    currentTarget++;
+                }
+            }
+
+        }
+        else{
+            int direction;
+            if(targets[currentTarget].y >yPos){
+                direction = 1;
+            }
+            else{
+                direction = -1;
+            }
+            if(rotate(0)){
+                debug("drive y",2000);
+                debug(String(targets[currentTarget].y),2000);
+                debug(String(targets[currentTarget].x),2000);
+                if(drive2(targets[currentTarget].x,targets[currentTarget].y)){
+                    currentTarget++;
+                }
+            }
+        
+        }
+        
     }
 
 }
@@ -77,12 +118,13 @@ void evaluateSensorReadings(){
 
 void estimateMovement(){
     double movement;
-    double diff = (left.targetSpeed -right.targetSpeed);
+    double diff = (left.currentSpeed -right.currentSpeed);
     if(diff >0){
-        movement = left.targetSpeed * looptime;
+        movement = (left.currentSpeed -diff/2)* looptime;
     }
     else{
-        movement = right.targetSpeed * looptime;
+        movement = (right.currentSpeed -diff/2)* looptime;
+    
     }
     
 
@@ -91,8 +133,21 @@ void estimateMovement(){
 }
 
 void calculatePosition(double movement){
-    xPos += movement* asin(rotation);
-    yPos += movement* acos(rotation);
+    if(isnan(movement)){
+        debug("nan detected movement",1);
+        debug(String(movement),1);
+    }
+    debug(String(movement),2000);
+    double change = movement* asin(rotation);
+    if(isnan(change)){
+        change = 0;
+    }
+    xPos += change;
+    change = movement* acos(rotation);
+    if(isnan(change)){
+        change = 0;
+    }
+    yPos += change;
 }
 
 int relativ2absolute(double relativ, bool isX){
@@ -119,8 +174,8 @@ void estimateRotation(double diff){
 
 void mapping(){
     int forward = checkForward();
-    int right = checkObstaclesClose(xPos + 0.1, yPos+0.1*(forward) );
-    int left = checkObstaclesClose(xPos - 0.1, yPos+0.1*(forward) );
+    int oRight = checkObstaclesClose(xPos + 0.1, yPos+0.1*(forward) );
+    int oLeft = checkObstaclesClose(xPos - 0.1, yPos+0.1*(forward) );
 
 
 }
@@ -189,9 +244,9 @@ int checkObstaclesClose(double x, double y){
         obstacle obs = obstacles[i];
 
         yDistance = y - obs.Y;
-        if(yDistance >-0.15 && yDistance < (obs.height +0.15)){
+        if(yDistance >-0.1 && yDistance < (obs.height +0.1)){
             xDistance = x - obs.X;
-            if(xDistance >-0.15 && xDistance < (obs.width +0.15)){
+            if(xDistance >-0.1 && xDistance < (obs.width +0.1)){
                 return i;
                 
             }
