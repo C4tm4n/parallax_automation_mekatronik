@@ -52,7 +52,7 @@ void loop()
         time = micros()/1000000.0;
     
     }
-    distance = filter(distance, newDistance, 0.3);
+    distance = filter(distance, newDistance, 0.1);
     currentTargetStruct.isX = false;
     currentTargetStruct.y = yPos + distance -0.2;
     currentTargetStruct.x = xPos; 

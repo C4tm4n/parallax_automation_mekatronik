@@ -11,7 +11,7 @@
 #define maxRotationSpeed 0.15
 #define maxObstacles 20
 #define targetCT 10
-#define breakingDistance 0.01
+#define breakingDistance 0.05
 
 extern double looptime;
 extern double xPos;

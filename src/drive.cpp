@@ -45,7 +45,7 @@ bool drive2(double absoluteX, double absoluteY, bool backward =false){
     debug("relativ",2000);
     debug(String(relativeX), 2000);
     debug(String(relativeY), 2000);
-    if(abs(relativeX)<0.01 && abs(relativeY) <0.01){
+    if(abs(relativeX)<0.02 && abs(relativeY) <0.02){
         debug("arrived",1000);
         right.targetSpeed= 0;
         left.targetSpeed= 0;
@@ -82,8 +82,8 @@ bool drive2(double absoluteX, double absoluteY, bool backward =false){
 }
 
 void drive(double leftSpeed, double rightSpeed){
-    left.servo.writeMicroseconds(1496.8- 586.71*leftSpeed);
-    right.servo.writeMicroseconds(1498+592.32*rightSpeed);
+    left.servo.writeMicroseconds(1500- 600*leftSpeed);
+    right.servo.writeMicroseconds(1500+600*rightSpeed);
 }
 
 double calculateSpeedDelta(struct motor servo){
